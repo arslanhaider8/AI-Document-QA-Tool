@@ -55,7 +55,7 @@ The application consists of two main components:
 1. Start the backend server:
    ```bash
    cd backend
-   npm run dev
+   npm start
    ```
 
 2. In a new terminal, start the frontend development server:

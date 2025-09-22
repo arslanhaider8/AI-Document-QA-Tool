@@ -2,6 +2,7 @@ import { useState } from "react";
 import FileUpload from "./components/FileUpload";
 import ChatBox from "./components/ChatBox";
 import InputBar from "./components/InputBar";
+import "./App.css";
 
 function App() {
   const [file, setFile] = useState(null);
@@ -98,12 +99,10 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <h1 className="app-title">Document Q&A Assistant</h1>
-        <p className="app-subtitle">
+        <h1 className="app-title" style={{ color: "#2563eb" , textAlign: "center" }}>Document Q&A Assistant</h1>
+        <p className="app-subtitle" style={{ textAlign: "center", color: "#555" }}>
           Upload a document and ask questions about its content
         </p>
-      </header>
 
       <FileUpload onFileUpload={handleFileUpload} uploadedFile={file} />
 

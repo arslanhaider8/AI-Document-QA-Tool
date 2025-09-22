@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 
-const FileUpload = ({ onFileUpload, uploadedFile }) => {
+const FileUpload = ({ onFileUpload, uploadedFile, onClear }) => {
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
@@ -116,29 +116,23 @@ const FileUpload = ({ onFileUpload, uploadedFile }) => {
       </div>
 
       {uploadedFile && (
-        <div className="file-info">
-          <h4>📄 Uploaded File</h4>
-          <div className="file-details">
-            <p>
-              <strong>Name:</strong> {uploadedFile.name}
-            </p>
-            <p>
-              <strong>Size:</strong> {formatFileSize(uploadedFile.size)}
-            </p>
-            <p>
-              <strong>Type:</strong>{" "}
-              {uploadedFile.name.endsWith(".pdf")
-                ? "PDF Document"
-                : "Text File"}
-            </p>
-            {uploadedFile.wordCount && (
-              <p>
-                <strong>Content:</strong>{" "}
-                {uploadedFile.wordCount.toLocaleString()} words,{" "}
-                {uploadedFile.characterCount?.toLocaleString()} characters
-              </p>
-            )}
+        <div className="file-info file-info-compact">
+          <div className="file-chip" title={uploadedFile.name}>
+            📄 {uploadedFile.name}
           </div>
+          <div className="file-meta">
+            {uploadedFile.name.endsWith(".pdf") ? "PDF" : "TXT"} ·{" "}
+            {formatFileSize(uploadedFile.size)}
+          </div>
+          <button
+            type="button"
+            className="file-clear-btn"
+            onClick={() => onClear?.()}
+            aria-label="Clear uploaded file"
+            title="Clear uploaded file"
+          >
+            ✕
+          </button>
         </div>
       )}
 

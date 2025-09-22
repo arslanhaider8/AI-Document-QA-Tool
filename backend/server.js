@@ -9,6 +9,7 @@ import path from "path";
 import documentRoutes from "./routes/documentRoutes.js";
 import healthRoutes from "./routes/healthRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
+import conversationRoutes from "./routes/conversationRoutes.js";
 import { initDb } from "./utils/db.js";
 
 // Load environment variables
@@ -45,6 +46,7 @@ if (!fs.existsSync(uploadsDir)) {
 app.use("/", documentRoutes);
 app.use("/", healthRoutes);
 app.use("/", chatRoutes);
+app.use("/", conversationRoutes);
 
 // Start server
 app.listen(port, () => {

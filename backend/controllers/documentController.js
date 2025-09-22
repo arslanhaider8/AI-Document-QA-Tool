@@ -111,7 +111,7 @@ export const uploadDocument = async (req, res) => {
  */
 export const askQuestion = async (req, res) => {
   try {
-    const { question } = req.body;
+    const { question, conversationId } = req.body;
 
     // Validation
     if (!extractedText) {
@@ -224,7 +224,7 @@ Answer:`;
     const result = await model.generateContent(prompt);
     const answer = result.response.text();
 
-    console.log("Generated response successfully");
+    console.log("Generated response successfully", answer);
     // Persist Q&A to database (non-blocking), include file metadata if available
     try {
       const fileNameForRow =
@@ -232,10 +232,23 @@ Answer:`;
       const filePathForRow =
         req.body?.filePath || req.query?.filePath || uploadedFilePath || null;
       await pool.query(
-        `INSERT INTO chat_messages (question, answer, file_name, file_path)
-         VALUES ($1, $2, $3, $4)`,
-        [question, answer?.trim() || "", fileNameForRow, filePathForRow]
+        `INSERT INTO chat_messages (question, answer, file_name, file_path, conversation_id)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [
+          question,
+          answer?.trim() || "",
+          fileNameForRow,
+          filePathForRow,
+          conversationId || null,
+        ]
       );
+      // If conversation has no title, set it to file name
+      if (conversationId && fileNameForRow) {
+        await pool.query(
+          `UPDATE conversations SET title = COALESCE(title, $2), updated_at = now() WHERE id = $1`,
+          [conversationId, fileNameForRow]
+        );
+      }
     } catch (dbErr) {
       console.error("[db] Failed to persist chat message:", dbErr);
     }

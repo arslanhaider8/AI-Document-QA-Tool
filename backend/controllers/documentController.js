@@ -6,6 +6,7 @@ const require = createRequire(import.meta.url);
 const pdfParse = require("pdf-parse/lib/pdf-parse.js");
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { chunkText, calculateRelevanceScore } from "../utils/textProcessor.js";
+import { pool } from "../utils/db.js";
 
 // Lazy Gemini model getter to ensure env vars are loaded before use
 function getGeminiModel() {
@@ -21,6 +22,8 @@ function getGeminiModel() {
 
 // Temporary in-memory storage
 let extractedText = "";
+let uploadedFileName = "";
+let uploadedFilePath = "";
 
 /**
  * Upload and process document (PDF or TXT)
@@ -61,11 +64,12 @@ export const uploadDocument = async (req, res) => {
       });
     }
 
-    // Store extracted text
+    // Store extracted text and file metadata
     extractedText = textContent.trim();
+    uploadedFileName = file.originalname;
+    uploadedFilePath = file.path;
 
-    // Delete uploaded file after extraction
-    fs.unlinkSync(file.path);
+    // Keep file on disk so we can persist file_path (you can clean up later if desired)
 
     const wordCount = extractedText.split(/\s+/).length;
     const characterCount = extractedText.length;
@@ -76,6 +80,7 @@ export const uploadDocument = async (req, res) => {
 
     res.json({
       fileName: file.originalname,
+      filePath: file.path,
       fileSize: `${(file.size / 1024).toFixed(2)} KB`,
       wordCount: wordCount,
       characterCount: characterCount,
@@ -220,6 +225,20 @@ Answer:`;
     const answer = result.response.text();
 
     console.log("Generated response successfully");
+    // Persist Q&A to database (non-blocking), include file metadata if available
+    try {
+      const fileNameForRow =
+        req.body?.fileName || req.query?.fileName || uploadedFileName || null;
+      const filePathForRow =
+        req.body?.filePath || req.query?.filePath || uploadedFilePath || null;
+      await pool.query(
+        `INSERT INTO chat_messages (question, answer, file_name, file_path)
+         VALUES ($1, $2, $3, $4)`,
+        [question, answer?.trim() || "", fileNameForRow, filePathForRow]
+      );
+    } catch (dbErr) {
+      console.error("[db] Failed to persist chat message:", dbErr);
+    }
     res.json({
       answer: answer.trim(),
       relevanceScore: topChunks[0]?.score || 0,

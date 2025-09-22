@@ -27,6 +27,7 @@ function App() {
           ...fileInfo,
           wordCount: result.wordCount,
           characterCount: result.characterCount,
+          filePath: result.filePath,
         });
         // Clear previous conversation when a new file is uploaded
         setMessages([]);
@@ -67,7 +68,11 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ question: messageText }),
+        body: JSON.stringify({
+          question: messageText,
+          fileName: file?.name,
+          filePath: file?.filePath,
+        }),
       });
 
       const result = await response.json();
@@ -99,10 +104,18 @@ function App() {
 
   return (
     <div className="app">
-        <h1 className="app-title" style={{ color: "#2563eb" , textAlign: "center" }}>Document Q&A Assistant</h1>
-        <p className="app-subtitle" style={{ textAlign: "center", color: "#555" }}>
-          Upload a document and ask questions about its content
-        </p>
+      <h1
+        className="app-title"
+        style={{ color: "#2563eb", textAlign: "center" }}
+      >
+        Document Q&A Assistant
+      </h1>
+      <p
+        className="app-subtitle"
+        style={{ textAlign: "center", color: "#555" }}
+      >
+        Upload a document and ask questions about its content
+      </p>
 
       <FileUpload onFileUpload={handleFileUpload} uploadedFile={file} />
 
@@ -114,6 +127,12 @@ function App() {
           disabled={loading}
           uploadedFile={file}
         />
+        <footer className="app-footer">
+          <p>
+            © {new Date().getFullYear()} AI Powered Document Q&A Tool · Built
+            with react and Express.
+          </p>
+        </footer>
       </div>
     </div>
   );

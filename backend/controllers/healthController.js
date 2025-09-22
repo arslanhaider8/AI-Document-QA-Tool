@@ -12,3 +12,16 @@ export const getHealth = (req, res) => {
     uptime: process.uptime(),
   });
 };
+
+export const getDbHealth = async (req, res) => {
+  try {
+    const { pool } = await import("../utils/db.js");
+    const result = await pool.query("SELECT now() AS now");
+    return res.json({
+      status: "ok",
+      now: result.rows?.[0]?.now,
+    });
+  } catch (err) {
+    return res.status(500).json({ status: "error", error: err.message });
+  }
+};
